@@ -1,17 +1,18 @@
 local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
 local previewers = require "telescope.previewers"
+local sorters = require("telescope.sorters")
 local conf = require("telescope.config").values
 local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
 local entry_display = require "telescope.pickers.entry_display"
 
 -- {"global", "--result=grep", "-d"}
-local CMD_DEF = {"/home/milan/dev/ttags/target/debug/ttags", "-d"}
+local CMD_DEF = {"/home/msvobod/ttags/target/debug/ttags", "-d"}
 -- {"global", "--result=grep", "-r"}
-local CMD_REF = {"/home/milan/dev/ttags/target/debug/ttags", "-r"}
+local CMD_REF = {"/home/msvobod/ttags/target/debug/ttags", "-r"}
 -- {"global", "-c"}
-local CMD_COMPLETE = {"/home/milan/dev/ttags/target/debug/ttags", "-c"}
+local CMD_COMPLETE = {"/home/msvobod/ttags/target/debug/ttags", "-c"}
 
 function split (inputstr, sep)
    if sep == nil then
@@ -32,6 +33,9 @@ local gtags = function(opts)
     if not prompt or prompt == "" then
       return nil
     end
+    -- Mimic SQL's % operator in like as .* to be compatible with
+    -- what user might expect: grep. But both will work.
+    prompt = string.gsub(prompt, "%.%*", "%%")
     return vim.tbl_flatten {CMD_COMPLETE, prompt}
   end, opts.entry_maker, 0, opts.cwd)
 
@@ -63,7 +67,8 @@ local gtags = function(opts)
     pickers.new(opts, {
       prompt_title = "Symbol " .. opts.title .. " " .. opts.symbol,
       finder = finders.new_oneshot_job(vim.tbl_flatten({opts.cmd, opts.symbol}), opts ),
-      sorter = conf.generic_sorter(opts),
+      sorter = sorters.highlighter_only(opts),
+      -- sorter = conf.generic_sorter(opts),
       previewer = conf.grep_previewer(opts),
     }):find()
   end
@@ -72,7 +77,8 @@ local gtags = function(opts)
     pickers.new(opts, {
       prompt_title = "Symbol completion " .. opts.default_text,
       finder = live_completion,
-      sorter = conf.generic_sorter(opts),
+      sorter = sorters.highlighter_only(opts),
+      -- sorter = conf.generic_sorter(opts),
       previewer = conf.file_previewer(opts),
       attach_mappings = function(prompt_bufnr, map)
         actions.select_default:replace(function()
