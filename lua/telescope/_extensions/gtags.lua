@@ -67,8 +67,7 @@ local gtags = function(opts)
     pickers.new(opts, {
       prompt_title = "Symbol " .. opts.title .. " " .. opts.symbol,
       finder = finders.new_oneshot_job(vim.tbl_flatten({opts.cmd, opts.symbol}), opts ),
-      -- sorter = sorters.highlighter_only(opts),
-      sorter = conf.generic_sorter(opts),
+      sorter = sorters.get_fuzzy_file(opts),
       previewer = conf.grep_previewer(opts),
     }):find()
   end
@@ -77,7 +76,7 @@ local gtags = function(opts)
     pickers.new(opts, {
       prompt_title = "Symbol completion " .. opts.default_text,
       finder = live_completion,
-      sorter = sorters.empty(opts),
+      sorter = sorters.get_fuzzy_file(opts),
       previewer = conf.file_previewer(opts),
       attach_mappings = function(prompt_bufnr, map)
         actions.select_default:replace(function()
